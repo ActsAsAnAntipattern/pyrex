@@ -11,7 +11,8 @@ module Pyrex
     end
 
     def valid_return?(return_value)
-      Array(returns).include?(return_value.class)
+      valid_type = Array(returns).include?(return_value.class)
+      raise Pyrex::Errors::InvalidReturnType.new(signature: self, given_type: return_value.class) unless valid_type
     end
 
     def valid_param?(param_name, argument_value_class)
@@ -26,7 +27,7 @@ module Pyrex
     class << self 
       def build(method_signature)
         method_name          = method_signature.keys.first
-        expected_return_type = method_signature.delete(method_name)[:return]
+        expected_return_type = method_signature.delete(method_name)[:returns]
 
         new(
           name: method_name,

@@ -1,7 +1,17 @@
+require 'pry'
+
 module Pyrex
   class Method
-    def self.define_method_for_class(klass, signature, block)
-      klass.send(:define_method, signature.name) do |*args|
+    def self.define_instance_method(klass, signature, block)
+      klass.define_method("__#{signature.name}") do |*args|
+        method = Pyrex::Method.new(signature, block)
+        method.verify_inputs(args)
+        method.call(args)
+      end
+    end
+
+    def self.define_class_method(klass, signature, block)
+      klass.send(:define_singleton_method, signature.name) do |*args|
         method = Pyrex::Method.new(signature, block)
         method.verify_inputs(args)
         method.call(args)
@@ -26,7 +36,7 @@ module Pyrex
 
     # TODO: This is not working :/
     def validate_return_value(return_value)
-      raise "Type mismatch" unless @signature.valid_return?(return_value)
+      @signature.valid_return?(return_value)
 
       return return_value
     end
